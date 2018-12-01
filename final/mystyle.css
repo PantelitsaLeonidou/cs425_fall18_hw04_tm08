@@ -1,0 +1,11 @@
+#map {
+    height: 650px;
+}
+
+
+.setvisible{
+        display:block;
+}
+.setinvisible{
+
+display:none;}
