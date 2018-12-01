@@ -1,3 +1,51 @@
+
+<?php
+  // Headers
+  header('Access-Control-Allow-Origin: *');
+  header('Content-Type: application/json');
+  header('Access-Control-Allow-Methods: PUT');
+  header('Access-Control-Allow-Headers: Access-Control-Allow-Headers,Content-Type,Access-Control-Allow-Methods, Authorization, X-Requested-With');
+
+  include_once 'Database.php';
+  include_once 'PV_class.php';
+
+  // Instantiate DB & connect
+  $database = new Database();
+  $db = $database->connect();
+
+  // Instantiate blog post object
+  $pv = new PV_class($db);
+
+  // Get raw posted data
+  $data = json_decode(file_get_contents("php://input"));
+
+  // Set ID to update
+  $pv->pv_id = $data->pv_id;
+
+  $pv->name = $data->name;
+  $pv->address = $data->address;
+  $pv->zip_code= $data->zip_code;
+  $pv->city = $data->city;
+  $pv->country=$data->country;
+  $pv->coordinate_x=$data->coordinate_x;
+  $pv->coordinate_y=$data->coordinate_y;
+
+  // Update post
+  if($pv->update()) {
+    echo json_encode(
+      array('message' => 'Post Updated')
+    );
+  } else {
+    echo json_encode(
+      array('message' => 'Post Not Updated')
+    );
+  }
+ubuntu@ip-172-31-23-175:/var/www/html/project$ ^C
+ubuntu@ip-172-31-23-175:/var/www/html/project$ ls
+Database.php       delete.php     mystyle.css      test.php
+PV_class.php       javascript.js  read_all.php     update.php
+create_new_pv.php  main.php       read_single.php
+ubuntu@ip-172-31-23-175:/var/www/html/project$ cat main.php
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,6 +65,32 @@
 </head>
 <body>
 
+
+
+<div class="setinvisible" id="update_form">
+<form id="update_f">
+<br>PV Id:<br>
+<input type="text" id="pv_id1" value="" disabled>
+<br>Pv name:<br>
+<input type="text" id="pv_name" value="" placeholder="">
+<br>Addres:<br>
+<input type="text" id="address" value="" placeholder="">
+<br>City:<br>
+  <input type="text" id="city" value="" placeholder="">
+<br>Country:<br>
+  <input type="text" id="country" value="" placeholder="">
+<br>Zip code:<br>
+  <input type="text" id="zip_code" value="" placeholder="">
+<br>Coordinate x:<br>
+<input type="text" id="coordinate_x" value="" placeholder="">
+<br>Coordinate_y:<br>
+<input type="text" id="coordinate_y" value="" placeholder="">
+  <br>
+<input type="submit" id="save_button"  value="save" >
+<button onclick()="invisible()" id="cancel1" >cancel </button>
+
+</form>
+</div>
     <div id="map">
 
         <script>
@@ -27,65 +101,14 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
-                      
-            
-            var url  = "read_all.php";
-            var xhr  = new XMLHttpRequest()
-            xhr.open('GET', url, true)
-            xhr.onload = function () {
-                var pvs = JSON.parse(xhr.responseText);
-                if (xhr.readyState == 4 && xhr.status == "200") {
-                   
-                       
 
-                 for (var i=0; i < pvs.data.length; i++){
-                        var pv_name=pvs.data[i].name;
-                        var pv_id=pvs.data[i].pv_id;
-                        var pv_address=pvs.data[i].address;
-                        var pv_zip_code=pvs.data[i].zip_code;
-                        var pv_country=pvs.data[i].country;
-                        var pv_city=pvs.data[i].city;
-                        var pv_coordinate_x=pvs.data[i].coordinate_x;
-                        var pv_coordinate_y=pvs.data[i].coordinate_y;
+        readAllFunction();
 
-                         var details='<div class="" >\
-                                <label>pv_id:</label><span id="pv_id">'+pv_id+'</span>\
-                        <br>\
-                                <label>name:</label><span id="name">'+pv_name+'</span>\
-                                        <br>\
-                                                <label>address:</label><span id="address">'+pv_address+'</span>\
-                                                        <br>\
-                                        <label>zip_code:</label><span id="zip_code">'+pv_zip_code+'</span>\
-                       <br>\
-                       <label>city:</label><span id="city">'+pv_city+'</span>\
-                       <br>\
-                       <label>country:</label><span id="country">'+pv_country+'</span>\
-                       <br>\
-                       <label>coordinate_x:</label><span id="coordinate_x">'+pv_coordinate_x+'</span>\
-                       <br>\
-                               <label>coordinate_y:</label><span id="coordinate_y">'+pv_coordinate_y+'</span>\
-                                       <br>\
-                        <input type="submit"  name="delete_button"  value="delete">\
-                        <input type="submit" name="edit_button" value="edit">\
-                        <input type="submit" onclick="close_popup()" name="submit" value="cancel">\
-                        </div>';
-                        
-                         L.marker([pvs.data[i].coordinate_x,pvs.data[i].coordinate_y]).addTo(map)
-                        .bindPopup(details)
-                        .openPopup();
-
-                    }
-
-                } else {
-                    window.alert("error");
-                }
-            }
-            xhr.send(null);
 
 
             map.on('click', function(e) {
 
-             popLocation= e.latlng;
+                    popLocation= e.latlng;
             var lat=popLocation.lat;
             var lng=popLocation.lng;
 
@@ -97,10 +120,10 @@
 
             var popup = L.popup()
                 .setLatLng(popLocation)
-
-            L.marker(popLocation).addTo(map)
-            .bindPopup(ask_to_create)
-            .openPopup();
+                L.marker(popLocation).addTo(map)
+        //      .on('click',setpopup);
+        .bindPopup(ask_to_create)
+        .openPopup();
             });
         </script>
    </div>
